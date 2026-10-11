@@ -82,13 +82,6 @@ matrix_type = "normal"
 row_pins = ["P0_02", "P1_11", "P0_09", "P0_24"]
 col_pins = ["P0_10", "P1_06", "P0_29", "P0_08", "P0_06", "P0_31"]
 
-# 电量报告（分压电阻：R2 = 2MΩ = 2000kΩ；R1+R2 = 820kΩ+2MΩ = 2820kΩ）。
-# 0.9 起电池配置从 [ble] 段移出：分体键盘放在 [split.central.battery]（中央侧电量）。
-[split.central.battery]
-battery_adc_pin = "P0_04"
-adc_divider_measured = 2000
-adc_divider_total = 2820
-
 # 外设侧（右半）：cols=6，col_offset=6 对齐到全局 12 列。
 [[split.peripheral]]
 rows = 4
@@ -104,6 +97,11 @@ col_pins = ["P0_08", "P0_24", "P0_10", "P0_09", "P1_04", "P1_06"]
 
 [ble]
 enabled = true
+# 电量报告（分压电阻：R2 = 2MΩ = 2000kΩ；R1+R2 = 820kΩ+2MΩ = 2820kΩ）。
+# rmk-config 0.8.0（rmk 0.9.0 配套）的 [ble] 段支持电池字段；分体中央侧电量由此上报。
+battery_adc_pin = "P0_04"
+adc_divider_measured = 2000
+adc_divider_total = 2820
 # nRF52840 最大 tx power 为 8
 default_tx_power = 8
 # 2M PHY（0.9 字段名，旧版 ble_use_2m_phy 已改名）
