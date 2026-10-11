@@ -39,9 +39,13 @@ jobs:
         # 覆盖 rmkit 生成的依赖与布局：rmk 指向你的 fork（status-adv feature），
         # rmk-status-adv 指向 01-rmk-status-adv crate；central/status_adv 处理器
         # 替换生成的 central.rs（参照 Eyelash60 的做法）。
+        # 注意：rmkit create（crates.io rmk-config 0.8.0，平铺式）校验的是仓库根的
+        # keyboard.toml；cargo build（fork 的 rmk-config = 上游 main 结构，子表式）
+        # 解析 rmk/keyboard.toml，因此这里用 firmware/keyboard.toml（子表式）覆盖。
         run: |
           cp Cargo.toml rmk/Cargo.toml
           cp memory.x rmk/memory.x
+          cp firmware/keyboard.toml rmk/keyboard.toml
           cp firmware/central.rs rmk/src/central.rs
           cp firmware/status_adv.rs rmk/src/status_adv.rs
       - name: Pin generated Rust toolchain
