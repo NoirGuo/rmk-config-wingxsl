@@ -1,0 +1,88 @@
+[package]
+name = "wingxsl"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+# rmkit copies this file into the generated `rmk/` project. The extra
+# dependencies are consumed only by firmware/central.rs (status_adv.rs
+# processor) — peripheral.rs remains the regular TOML-generated RMK split
+# peripheral, but both bins link the same patched rmk below.
+#
+# NOTE: two git dependencies point at repos YOU create (see README):
+#   1. rmk  -> 你的 fork（把 02-rmk-fork-patch/rmk-status-adv-feature.patch
+#              打到 rmk-rs/rmk@v0.9.0 后 push，并打 tag v0.9.0-status-adv）
+#   2. rmk-status-adv -> 01-rmk-status-adv crate（任意 tag，如 v1.0.0）
+[dependencies]
+rmk = { git = "https://github.com/NoirGuo/rmk", tag = "v0.9.0-status-adv", features = [
+    "nrf52840_ble",
+    "split",
+    "async_matrix",
+    "adafruit_bl",
+    "status-adv",
+] }
+rmk-status-adv = { git = "https://github.com/NoirGuo/rmk-status-adv", tag = "v1.0.0" }
+nrf-sdc = { version = "0.4.0", features = [
+    "defmt",
+    "peripheral",
+    "central",
+    "nrf52840",
+] }
+nrf-mpsl = { version = "0.4.0", features = [
+    "defmt",
+    "critical-section-impl",
+    "nrf52840",
+] }
+bt-hci = { version = "0.10", features = ["defmt"] }
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.5"
+defmt = "1"
+defmt-rtt = "1"
+panic-probe = { version = "1", features = ["print-defmt"] }
+static_cell = "2"
+
+embassy-time = { version = "0.5", features = [
+    "tick-hz-32_768",
+    "defmt",
+    "defmt-timestamp-uptime",
+] }
+embassy-nrf = { version = "0.11", features = [
+    "defmt",
+    "nrf52840",
+    "time-driver-rtc1",
+    "gpiote",
+    "unstable-pac",
+    "nfc-pins-as-gpio",
+    "time",
+] }
+embassy-executor = { version = "0.10", features = [
+    "defmt",
+    "platform-cortex-m",
+    "executor-thread",
+] }
+
+[build-dependencies]
+const-gen = "1.6"
+json = "0.12"
+xz2 = "0.1.7"
+
+[[bin]]
+name = "central"
+path = "src/central.rs"
+
+[[bin]]
+name = "peripheral"
+path = "src/peripheral.rs"
+
+[profile.dev]
+debug = false
+incremental = false
+
+[profile.release]
+codegen-units = 1
+debug = false
+incremental = false
+opt-level = "z"
+lto = "fat"
+strip = "debuginfo"

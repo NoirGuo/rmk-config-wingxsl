@@ -1,0 +1,73 @@
+name: Build Wingxsl firmware (RMK 0.9 + status-adv)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Cargo.toml"
+      - "memory.x"
+      - "keyboard.toml"
+      - "vial.json"
+      - "firmware/**"
+      - ".github/workflows/build.yml"
+
+env:
+  RUST_MIN_STACK: "67108864"
+  RUST_TOOLCHAIN: "1.96.0"
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.96.0
+      - uses: cargo-bins/cargo-binstall@main
+      - name: Install RMK tooling and ARM GCC
+        run: |
+          cargo binstall cargo-make rmkit flip-link -y
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi
+      - name: Generate the RMK split project
+        run: |
+          rmkit create \
+            --keyboard-toml-path keyboard.toml \
+            --vial-json-path vial.json \
+            --version main \
+            --target-dir rmk
+      - name: Overlay patched manifest, linker script and custom central code
+        # 覆盖 rmkit 生成的依赖与布局：rmk 指向你的 fork（status-adv feature），
+        # rmk-status-adv 指向 01-rmk-status-adv crate；central/status_adv 处理器
+        # 替换生成的 central.rs（参照 Eyelash60 的做法）。
+        run: |
+          cp Cargo.toml rmk/Cargo.toml
+          cp memory.x rmk/memory.x
+          cp firmware/central.rs rmk/src/central.rs
+          cp firmware/status_adv.rs rmk/src/status_adv.rs
+      - name: Pin generated Rust toolchain
+        working-directory: rmk
+        run: |
+          if [ -f rust-toolchain.toml ]; then
+            sed -i "s/^channel = .*/channel = \"$RUST_TOOLCHAIN\"/" rust-toolchain.toml
+          fi
+          rustup toolchain install "$RUST_TOOLCHAIN"
+      - name: Cache registry and release target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rmk -> target"
+          key: "nrf52840-wingxsl-status-adv"
+      - name: Build central and peripheral release firmware
+        working-directory: rmk
+        run: |
+          cargo build --release
+          cargo make uf2 --release
+      - name: Upload UF2 firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: Wingxsl-status-adv-firmware_uf2
+          path: rmk/*.uf2
+      - name: Upload HEX firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: Wingxsl-status-adv-firmware_hex
+          path: rmk/*.hex

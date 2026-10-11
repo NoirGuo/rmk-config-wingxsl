@@ -1,0 +1,129 @@
+# Documentation: https://rmk.rs/docs/getting_started/introduction.html
+# Wingxsl 4x12 分体（nRF52840），RMK 0.9 + Prospector 兼容状态广播（status-adv）。
+[keyboard]
+name = "Wingxsl"
+product_name = "Wingxsl"
+vendor_id = 0x4c4b
+product_id = 0x4643
+manufacturer = "Noir Guo"
+chip = "nrf52840"
+
+[layout]
+rows = 4
+cols = 12
+map = """
+(0,0) (0,1) (0,2) (0,3) (0,4) (0,5) (0,6) (0,7) (0,8) (0,9) (0,10) (0,11)
+(1,0) (1,1) (1,2) (1,3) (1,4) (1,5) (1,6) (1,7) (1,8) (1,9) (1,10) (1,11)
+(2,0) (2,1) (2,2) (2,3) (2,4) (2,5) (2,6) (2,7) (2,8) (2,9) (2,10) (2,11)
+(3,0) (3,1) (3,2) (3,3) (3,4) (3,5) (3,6) (3,7) (3,8) (3,9) (3,10) (3,11)
+"""
+
+[keymap]
+layers = 5
+
+[[keymap.layer]]
+name = "base"
+keys = """
+Escape Q W E R T Y U I O P Backslash
+CapsLock A S D F G H J K L Semicolon Enter
+LShift Z X C V B N M Comma Dot Slash RShift
+_ _ LCtrl WM(Equal,LAlt) WM(Grave,LGui) Enter LT(1, Delete) Space LT(2, Quote) Backspace _ _
+"""
+
+[[keymap.layer]]
+name = "fn1"
+keys = """
+Tab Kc1 Kc2 Kc3 Kc4 Kc5 Kc6 Kc7 Kc8 Kc9 Kc0 Backspace
+_ _ _ _ _ _ Home _ Up LeftBracket RightBracket F12
+_ _ _ _ _ _ End Left Down Right _ Enter
+_ _ _ _ _ _ _ _ _ _ _ _
+"""
+
+[[keymap.layer]]
+name = "fn2"
+keys = """
+F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+"""
+
+[[keymap.layer]]
+name = "fn3"
+keys = """
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+"""
+
+[[keymap.layer]]
+name = "fn4"
+keys = """
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _ _ _ _ _
+"""
+
+[split]
+connection = "ble"
+
+# 中央侧：4x6 矩阵（左半）+ 4x6 空列占位（右半由外设填充），BLE 分体。
+[split.central]
+rows = 4
+cols = 6
+row_offset = 0
+col_offset = 0
+ble_addr = [0x7e, 0xfe, 0x73, 0x9e, 0x66, 0xe3]
+
+[split.central.matrix]
+matrix_type = "normal"
+row_pins = ["P0_02", "P1_11", "P0_09", "P0_24"]
+col_pins = ["P0_10", "P1_06", "P0_29", "P0_08", "P0_06", "P0_31"]
+
+# 外设侧（右半）：cols=6，col_offset=6 对齐到全局 12 列。
+[[split.peripheral]]
+rows = 4
+cols = 6
+row_offset = 0
+col_offset = 6
+ble_addr = [0x18, 0xe2, 0x21, 0x80, 0xc0, 0xc7]
+
+[split.peripheral.matrix]
+matrix_type = "normal"
+row_pins = ["P1_11", "P0_02", "P0_29", "P0_31"]
+col_pins = ["P0_08", "P0_24", "P0_10", "P0_09", "P1_04", "P1_06"]
+
+[ble]
+enabled = true
+# 电量报告（分压电阻：R2 = 2MΩ = 2000kΩ；R1+R2 = 820kΩ+2MΩ = 2820kΩ）
+battery_adc_pin = "P0_04"
+adc_divider_measured = 2000
+adc_divider_total = 2820
+# nRF52840 最大 tx power 为 8
+default_tx_power = 8
+# 2M PHY（0.9 字段名，旧版 ble_use_2m_phy 已改名）
+use_2m_phy = true
+
+[storage]
+enabled = true
+
+[rmk]
+# Maximum number of combos keyboard can store
+combo_max_num = 15
+# Maximum number of keys pressed simultaneously in a combo
+combo_max_length = 4
+# The number of available BLE profiles
+ble_profiles_num = 5
+# Default debounce time in milliseconds
+debounce_time = 5
+# BLE Split Central sleep timeout in seconds (0 = disabled)
+split_central_sleep_timeout_seconds = 7200
+# Macro space size in bytes for storing sequences
+macro_space_size = 2560
+
+[host]
+# Unlock combination: simultaneous press of specified keys
+# Format: [[row, col], [row, col], ...]
+unlock_keys = [[0, 0], [0, 1]]  # Keys at (row=0,col=0) and (row=0,col=1)
