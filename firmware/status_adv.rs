@@ -73,7 +73,7 @@ impl StatusAdvProcessor {
         snap.device_role = ROLE_CENTRAL; // Wingxsl 中央侧广播
         snap.device_index = 0;
         snap.keyboard_id = keyboard_id_from_deviceid(&read_device_id());
-        snap.layer_name = LAYER_NAMES[0];
+        snap.layer_name = *LAYER_NAMES[0];
         snap.channel = 0; // 0 = 广播给所有接收器
         Self {
             snap,
@@ -84,7 +84,7 @@ impl StatusAdvProcessor {
 
     /// 提交当前快照（可选突发）。
     fn commit(&self, burst: bool) {
-        set_payload(&self.snap.encode(), burst);
+        set_payload(Some(&self.snap.encode()), burst);
     }
 }
 

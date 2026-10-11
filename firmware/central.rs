@@ -11,7 +11,7 @@ mod keyboard_central {
 
     // 注册 Prospector 状态广播处理器。处理器在固件侧把事件收敛成
     // 26 字节载荷并提交给 rmk 的 status-adv feature（见 rmk/src/ble/status_adv.rs）。
-    #[register_processor(poll)]
+    #[register_processor]
     fn status_adv_processor() -> StatusAdvProcessor {
         StatusAdvProcessor::new()
     }
